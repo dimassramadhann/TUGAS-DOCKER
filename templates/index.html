@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Task Manager | Komputasi Awan</title>
+  <style>
+    :root { color-scheme: light; --ink:#18243a; --muted:#657189; --accent:#2459a9; --line:#e1e7f0; --bg:#f3f6fb; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family:system-ui,-apple-system,Segoe UI,sans-serif; color:var(--ink); background:var(--bg); }
+    header { background:#17345f; color:white; padding:30px 20px; }
+    header div, main { max-width:880px; margin:0 auto; }
+    header h1 { margin:0 0 6px; font-size:clamp(1.6rem,4vw,2.1rem); }
+    header p { margin:0; color:#dbe7fb; }
+    main { padding:26px 16px 48px; }
+    .panel { background:#fff; border:1px solid var(--line); border-radius:14px; padding:22px; margin-bottom:18px; box-shadow:0 5px 20px #1832580a; }
+    h2 { margin:0 0 16px; font-size:1.15rem; }
+    label { display:block; font-weight:650; margin:12px 0 6px; }
+    input, textarea { width:100%; border:1px solid #cbd5e4; border-radius:8px; padding:11px 12px; font:inherit; background:white; }
+    textarea { resize:vertical; min-height:76px; }
+    button { border:0; border-radius:8px; padding:10px 14px; font:inherit; font-weight:650; cursor:pointer; }
+    .primary { background:var(--accent); color:white; margin-top:14px; }
+    .tasks { display:grid; gap:12px; }
+    .task { border:1px solid var(--line); border-radius:10px; padding:15px; display:flex; justify-content:space-between; gap:14px; align-items:flex-start; }
+    .task h3 { margin:0 0 5px; font-size:1rem; overflow-wrap:anywhere; }
+    .task p { margin:0; color:var(--muted); white-space:pre-wrap; overflow-wrap:anywhere; }
+    .done h3 { text-decoration:line-through; color:var(--muted); }
+    .actions { display:flex; gap:7px; flex-wrap:wrap; }
+    .secondary { background:#eaf0fa; color:#20467e; }
+    .danger { background:#fff0f0; color:#a12424; }
+    .flash { padding:10px 12px; border-radius:8px; margin-bottom:12px; background:#e8f6ed; color:#176036; }
+    .flash.error { background:#fff0f0; color:#a12424; }
+    .empty { color:var(--muted); padding:15px 0; }
+    footer { text-align:center; color:var(--muted); font-size:.86rem; padding:10px; }
+    @media(max-width:560px) { .task { flex-direction:column; } .actions { width:100%; } }
+  </style>
+</head>
+<body>
+  <header><div>
+    <h1>Task Manager</h1>
+    <p>Aplikasi pengelolaan tugas berbasis Flask, MySQL, dan Docker</p>
+  </div></header>
+  <main>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}<div class="flash {{ category }}">{{ message }}</div>{% endfor %}
+    {% endwith %}
+    <section class="panel">
+      <h2>Tambah tugas baru</h2>
+      <form method="post" action="{{ url_for('add_task') }}">
+        <label for="title">Judul tugas *</label>
+        <input id="title" name="title" maxlength="255" required placeholder="Contoh: Menyelesaikan praktikum Docker">
+        <label for="description">Deskripsi (opsional)</label>
+        <textarea id="description" name="description" placeholder="Catatan atau detail tugas"></textarea>
+        <button class="primary" type="submit">Tambah tugas</button>
+      </form>
+    </section>
+    <section class="panel">
+      <h2>Daftar tugas ({{ tasks|length }})</h2>
+      {% if tasks %}
+        <div class="tasks">
+          {% for task in tasks %}
+            <article class="task {% if task.is_completed %}done{% endif %}">
+              <div>
+                <h3>{{ task.title }}</h3>
+                {% if task.description %}<p>{{ task.description }}</p>{% endif %}
+                <p style="font-size:.8rem;margin-top:8px">Status: {% if task.is_completed %}Selesai{% else %}Belum selesai{% endif %}</p>
+              </div>
+              <div class="actions">
+                <form method="post" action="{{ url_for('toggle_task', task_id=task.id) }}">
+                  <button class="secondary" type="submit">{% if task.is_completed %}Batalkan{% else %}Selesaikan{% endif %}</button>
+                </form>
+                <form method="post" action="{{ url_for('delete_task', task_id=task.id) }}" onsubmit="return confirm('Hapus tugas ini?')">
+                  <button class="danger" type="submit">Hapus</button>
+                </form>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="empty">Belum ada tugas. Tambahkan tugas pertamamu melalui formulir di atas.</p>
+      {% endif %}
+    </section>
+  </main>
+  <footer>Project praktikum Komputasi Awan — Flask + MySQL + Docker Compose</footer>
+</body>
+</html>
